@@ -2,7 +2,7 @@
 
 Here's a stat that should make every content marketer uncomfortable: according to Ahrefs, 96.55% of all web pages get zero traffic from Google. Not low traffic. Zero.
 
-And yet, B2B marketing teams keep pumping out blog posts like there's no tomorrow. Four posts a week, every week, hoping something sticks. Most of it basically just disappears into the void.
+B2B marketing teams continue publishing at high volume — four posts a week, every week — hoping something gains traction. Most of it never does.
 
 ## The Real Problem Isn't Volume — It's Quality
 
@@ -12,7 +12,7 @@ The result? Content that's riddled with inconsistencies. The tone shifts between
 
 ## Why Full AI Rewrites Are Not the Answer
 
-Some teams have tried solving this by running their entire draft through an LLM and using whatever comes out. This is a terrible idea for several reasons. First, you lose the author's authentic voice. Second, the AI will confidently rewrite things that were already good. Third, you end up with that weird, generic AI tone that readers are getting really good at spotting — its like reading content that was written by a committee of robots.
+Third, you end up with that weird, generic AI tone that readers are getting really good at spotting — it's like reading content that feels generic and authorless.
 
 ## The Sweet Spot: Line-Level AI QA
 
@@ -24,9 +24,9 @@ The key insight is separation of concerns. One agent finds problems. Another age
 
 ## The Numbers Don't Lie
 
-Gartner research shows that 65% of B2B content goes completely unused by sales teams, often because it doesn't match the brand voice or quality standards. Meanwhile, HubSpot found that 40% of marketers say proving content ROI is there biggest challenge.
+Meanwhile, HubSpot found that 40% of marketers say proving content ROI is their biggest challenge.
 
-When your content quality is inconsistent, everything downstream suffers. Sales won't use it. Prospects won't trust it. And you definately can't measure ROI on content that nobody reads.
+And you definitely can't measure ROI on content that nobody reads.
 
 ## What This Means for Content Teams
 
