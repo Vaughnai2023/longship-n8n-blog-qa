@@ -1,0 +1,13 @@
+# Planning docs (not part of submission)
+longship-task2-prd.md
+n8n Automation Specialist Hiring Process Tasks.md
+BUILD-TODO.md
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+.vscode/
+*.swp
+*.swo
