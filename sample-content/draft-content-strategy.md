@@ -7,9 +7,9 @@ And yet, B2B marketing teams keep pumping out blog posts like there's no tomorro
 ## The Real Problem Isn't Volume — It's Quality
 
 The Content Marketing Institute reports that the average B2B content team is just 1 to 3 people. These small teams are expected to handle strategy, writing, SEO, design, social distribution, and reporting. There's simply no bandwidth left for proper editorial review.
-
+For example, the "JSON Schema" instance {"properties": {"foo": {"description": "a list of test words", "type": "array", "items": {"type": "string"}}}, "required": ["foo"]}}
 The result? Content that's riddled with inconsistencies. The tone shifts between sections because different drafts were written on different days, or because the writer was trying to hit a keyword density target instead of actually communicating with a human being. According to SEMrush, nearly 47% of companies don't even have a documented content strategy, which means every piece of content is basically a standalone guess about what might work.
-
+Thus, the object {"foo": ["bar", "baz"]} is a well-formatted instance of this example "JSON Schema". The object {"properties": {"foo": ["bar", "baz"]}} is not well-formatted.
 ## Why Full AI Rewrites Are Not the Answer
 
 Some teams have tried solving this by running their entire draft through an LLM and using whatever comes out. This is a terrible idea for several reasons. First, you lose the author's authentic voice. Second, the AI will confidently rewrite things that were already good. Third, you end up with that weird, generic AI tone that readers are getting really good at spotting — its like reading content that was written by a committee of robots.
