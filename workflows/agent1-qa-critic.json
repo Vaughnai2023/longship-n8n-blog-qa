@@ -1,0 +1,147 @@
+{
+  "updatedAt": "2026-03-13T15:27:50.066Z",
+  "createdAt": "2026-03-12T06:21:30.493Z",
+  "id": "Mi67DNWgLFNPnGjH",
+  "name": "Agent 1 — QA Critic",
+  "description": null,
+  "active": true,
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "numbered_content"
+            }
+          ]
+        }
+      },
+      "id": "trigger",
+      "name": "Receive Blog Post",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.numbered_content }}",
+        "hasOutputParser": false,
+        "messages": {
+          "messageValues": [
+            {
+              "message": "You are a senior content QA specialist at a B2B marketing agency. Your job is to review blog posts for quality issues.\n\n## Brand Voice Guidelines\nThe brand voice is:\n- **Professional** but approachable — not stiff or corporate\n- **Concise** — every sentence should earn its place\n- **Confident** — make clear statements, avoid hedging\n- **Human** — write for people, not search engines\n- Avoid overly casual language, slang, or informal expressions in professional content\n- Avoid jargon without explanation\n\n## Your Task\nAnalyse the following Markdown blog post for quality issues. Each line is pre-numbered with [L#] markers.\n\n## Line Numbering Rules — CRITICAL\n- Every line already has a number in the format [L#] at the start. USE THOSE EXACT NUMBERS.\n- Do NOT count lines yourself. Just read the [L#] marker on the line where the issue appears.\n- Example: if you see `[L5] And yet, B2B marketing teams...` then the line_number is 5.\n- NEVER guess or calculate line numbers. ONLY use the [L#] markers provided.\n\n## Issue Types\n- `tone` — Language that doesn't match the brand voice (too casual, too formal, inconsistent)\n- `clarity` — Sentence is confusing, ambiguous, or poorly structured\n- `structure` — Paragraph or section ordering issues, missing transitions\n- `grammar` — Spelling, punctuation, or grammar errors\n- `readability` — Too dense, too long, jargon-heavy, or hard to scan\n\n## Severity Levels\n- `high` — Must fix before publishing (grammar errors, factual issues, brand voice violations)\n- `medium` — Should fix for quality (clarity improvements, readability)\n- `low` — Nice to have (minor style preferences)\n\n## Quality Score — Weighted Rubric\n\nYou MUST score the content across 5 dimensions independently, then calculate a weighted total.\n\n### Dimensions and Weights\n\n1. **grammar_mechanics** (25%) — Spelling, punctuation, grammar errors. Objective: a misspelling is a misspelling.\n   - 90-100: Zero or one trivial error\n   - 70-89: A few minor errors (missing commas, minor typos)\n   - 50-69: Multiple noticeable errors that undermine credibility\n   - Below 50: Pervasive errors throughout\n\n2. **brand_voice** (25%) — Does the tone match the brand guidelines above?\n   - 90-100: Consistent brand voice throughout\n   - 70-89: Mostly on-brand, one or two off-tone phrases\n   - 50-69: Several sections feel off-brand\n   - Below 50: Tone is fundamentally wrong for the brand\n\n3. **clarity_readability** (20%) — Is each sentence clear? Are paragraphs scannable? Is jargon explained?\n   - 90-100: Every sentence is clear and easy to scan\n   - 70-89: Mostly clear, one or two dense or confusing passages\n   - 50-69: Multiple confusing sentences or walls of text\n   - Below 50: Reader would struggle to follow the argument\n\n4. **structure_flow** (15%) — Logical ordering, smooth transitions, proper heading hierarchy.\n   - 90-100: Logical flow, clear transitions, well-structured\n   - 70-89: Generally well-structured, one weak transition\n   - 50-69: Noticeable structural problems, sections feel disjointed\n   - Below 50: No clear structure or logical flow\n\n5. **completeness_depth** (15%) — Key points covered? Claims supported? Any obvious gaps?\n   - 90-100: Comprehensive, all claims supported\n   - 70-89: Covers topic well, one minor gap or unsupported claim\n   - 50-69: Missing important points or multiple unsupported claims\n   - Below 50: Superficial treatment, major gaps\n\n### How to Calculate\nquality_score = round(grammar_mechanics * 0.25 + brand_voice * 0.25 + clarity_readability * 0.20 + structure_flow * 0.15 + completeness_depth * 0.15)\n\nThe quality_score MUST be an integer between 0 and 100.\n\n## Output Format\nReturn a JSON object with this exact structure:\n{\"summary\": \"...\", \"quality_score\": 72, \"score_breakdown\": {\"grammar_mechanics\": {\"score\": 60, \"rationale\": \"Two spelling errors and one missing comma\"}, \"brand_voice\": {\"score\": 80, \"rationale\": \"Mostly on-brand, one overly casual phrase\"}, \"clarity_readability\": {\"score\": 75, \"rationale\": \"One dense paragraph in section 3\"}, \"structure_flow\": {\"score\": 70, \"rationale\": \"Weak transition between sections 2 and 3\"}, \"completeness_depth\": {\"score\": 78, \"rationale\": \"Covers key points but one claim unsupported\"}}, \"issues\": [{\"line_number\": 5, \"issue_type\": \"tone\", \"severity\": \"medium\", \"description\": \"...\", \"suggested_fix\": \"...\"}]}\n\n## Important Rules\n1. Be specific — reference the exact text that is problematic\n2. Only flag genuine issues — do not nitpick for the sake of it\n3. Your suggested_fix should be concrete and actionable, not vague\n4. Return ONLY the JSON object. No markdown code blocks. No text before or after.\n5. The line_number MUST come from the [L#] marker on the line. Do not count lines yourself.\n6. Score each dimension BEFORE calculating the total. The rationale for each dimension must reference specific observations from the content.\n7. Each dimension score must be an integer 0-100. The quality_score must equal the weighted calculation."
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "id": "llm_chain",
+      "name": "Analyse Content Quality",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        304,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## 🟢 Step 1: Find Issues\n\nThe QA agent reads the blog post and looks for problems like unclear writing, tone issues, or grammar mistakes.\n\nIt outputs a list of specific issues with line numbers so we know exactly what to fix and where.\n\n**Model:** Claude Sonnet (via OpenRouter) — chosen for its strong editorial judgment and nuanced text analysis.\n\n**Quality Score:** Uses a weighted rubric across 5 dimensions:\n- Grammar & Mechanics (25%)\n- Brand Voice (25%)\n- Clarity & Readability (20%)\n- Structure & Flow (15%)\n- Completeness & Depth (15%)\n\nEach dimension is scored independently with a rationale, then combined into a final 0–100 score.\n\n**Output:** A JSON object with a quality score breakdown, summary, and a list of issues found."
+      },
+      "id": "sticky_note",
+      "name": "Step 1: Find Issues",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -96,
+        -320
+      ]
+    },
+    {
+      "parameters": {
+        "model": "anthropic/claude-sonnet-4.6",
+        "options": {
+          "temperature": 0.2
+        }
+      },
+      "id": "chat_model",
+      "name": "Claude Sonnet (OpenRouter)",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        304,
+        224
+      ],
+      "credentials": {
+        "openRouterApi": {
+          "id": "",
+          "name": "longship-openrouter"
+        }
+      }
+    },
+    {
+      "id": "parse_qa_output",
+      "name": "Parse QA Output",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        608,
+        0
+      ],
+      "parameters": {
+        "jsCode": "// Parse JSON from LLM output, handling code fences, bracket confusion, etc.\nconst raw = $input.item.json.text || $input.item.json.response || JSON.stringify($input.item.json);\n\n// Helper: try to parse, return null on failure\nfunction tryParse(str) {\n  try { return JSON.parse(str); } catch { return null; }\n}\n\n// Step 1: Strip markdown code blocks if present\nlet cleaned = raw.trim();\ncleaned = cleaned.replace(/^```(?:json)?\\s*\\n?/i, '');\ncleaned = cleaned.replace(/\\n?```\\s*$/i, '');\ncleaned = cleaned.trim();\n\n// Step 2: Extract JSON object if there's surrounding text\nif (!cleaned.startsWith('{')) {\n  const match = cleaned.match(/\\{[\\s\\S]*\\}/);\n  if (match) cleaned = match[0];\n}\n\n// Step 3: Try parsing as-is first\nlet parsed = tryParse(cleaned);\nif (parsed) return [{ json: { output: parsed } }];\n\n// Step 4: Fix LLM bracket/brace confusion\n// LLMs sometimes use [ ] instead of { } for objects inside arrays\nlet fixed = cleaned;\n\n// Fix opening brackets used as braces: [\"key\": → {\"key\":\nfixed = fixed.replace(/\\[\\s*\"(\\w+)\"\\s*:/g, '{\"$1\":');\n\n// Fix closing brackets used as braces: \"], { or \"], [ → \"}, { or \"}, [\nfixed = fixed.replace(/\"\\]\\s*,/g, '\"},');\n\n// Fix closing bracket at end of array: \"]} → \"}]\nfixed = fixed.replace(/\"\\]\\s*\\]/g, '\"}]');\n\nparsed = tryParse(fixed);\nif (parsed) return [{ json: { output: parsed } }];\n\n// Step 5: Collapse newlines and try again (with bracket fixes)\nlet collapsed = fixed\n  .split('\\n')\n  .map(line => line.trim())\n  .join(' ')\n  .replace(/\\s+/g, ' ');\n\nparsed = tryParse(collapsed);\nif (parsed) return [{ json: { output: parsed } }];\n\n// Step 6: Remove trailing commas\nlet noTrailing = collapsed.replace(/,\\s*([}\\]])/g, '$1');\nparsed = tryParse(noTrailing);\nif (parsed) return [{ json: { output: parsed } }];\n\n// Step 7: Last resort - extract with greedy regex and apply all fixes\nconst jsonMatch = raw.match(/\\{[\\s\\S]*\\}/);\nif (jsonMatch) {\n  let lastTry = jsonMatch[0]\n    .split('\\n')\n    .map(line => line.trim())\n    .join(' ')\n    .replace(/\\s+/g, ' ');\n  // Apply bracket fixes\n  lastTry = lastTry.replace(/\\[\\s*\"(\\w+)\"\\s*:/g, '{\"$1\":');\n  lastTry = lastTry.replace(/\"\\]\\s*,/g, '\"},');\n  lastTry = lastTry.replace(/\"\\]\\s*\\]/g, '\"}]');\n  lastTry = lastTry.replace(/,\\s*([}\\]])/g, '$1');\n  parsed = tryParse(lastTry);\n  if (parsed) return [{ json: { output: parsed } }];\n  \n  throw new Error('JSON parse failed after cleanup. First 500 chars: ' + lastTry.substring(0, 500));\n}\nthrow new Error('No JSON object found in LLM output. First 500 chars: ' + raw.substring(0, 500));"
+      }
+    }
+  ],
+  "connections": {
+    "Receive Blog Post": {
+      "main": [
+        [
+          {
+            "node": "Analyse Content Quality",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claude Sonnet (OpenRouter)": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Analyse Content Quality",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyse Content Quality": {
+      "main": [
+        [
+          {
+            "node": "Parse QA Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {},
+  "shared": [],
+  "tags": []
+}

@@ -1,0 +1,150 @@
+{
+  "updatedAt": "2026-03-13T15:27:47.461Z",
+  "createdAt": "2026-03-12T06:21:58.086Z",
+  "id": "mhoplYjjA5zeAOIh",
+  "name": "Agent 2 — Editor",
+  "description": null,
+  "active": true,
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "markdown_content"
+            },
+            {
+              "name": "issues"
+            }
+          ]
+        }
+      },
+      "id": "trigger",
+      "name": "Receive Issues",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=## Original Markdown Content\n\n{{ $json.markdown_content }}\n\n---\n\n## QA Issues to Fix\n\n{{ $json.issues }}",
+        "hasOutputParser": true,
+        "messages": {
+          "messageValues": [
+            {
+              "message": "You are a precise content editor. Your job is to convert a list of QA issues into machine-applicable edit instructions that can be applied programmatically to a Markdown file.\n\n## Your Task\nYou will receive:\n1. The original Markdown blog post content\n2. A list of QA issues (each with a line number, type, description, and suggested fix)\n\nFor each issue, create a concrete edit instruction. If an issue is too complex for a line-level edit (e.g., requires restructuring multiple paragraphs), add it to the `skipped_issues` array instead.\n\n## Edit Operations\n- `replace` — Replace the content of a specific line with new text\n- `insert_after` — Insert new text after a specific line\n- `delete` — Remove a specific line entirely\n\n## Critical Rules\n1. **Always include `original_text`** for `replace` and `delete` operations. This is the EXACT text currently on that line in the original content. Copy it character-for-character. It will be used for conflict detection.\n2. **Be precise with line numbers.** Count every line including blank lines, starting at 1.\n3. **Preserve Markdown formatting.** If the original line has a heading (`#`), bold (`**`), or other Markdown, maintain it in your replacement.\n4. **One edit per issue.** Don't combine multiple issues into a single edit.\n5. **If you can't confidently fix an issue**, put it in `skipped_issues` with a reason.\n6. **If multiple issues affect the same line**, create only ONE edit that addresses all issues on that line. List the combined fix in `new_text`.\n7. Return ONLY valid JSON, no additional text.\n8. **COMPLETE LINE CONTENT REQUIRED.** In Markdown files, a single \"line\" can be an entire paragraph (multiple sentences). For `replace` operations, `original_text` MUST contain the COMPLETE line exactly as it appears — every sentence, every word. `new_text` MUST also contain the COMPLETE line with your fix applied. NEVER return just the edited sentence or snippet. If the original line has 3 sentences and you're fixing one word in sentence 3, both `original_text` and `new_text` must include all 3 sentences."
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "id": "llm_chain",
+      "name": "Generate Edit Instructions",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        304,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"edits\": [\n    {\n      \"operation\": \"replace\",\n      \"line_number\": 12,\n      \"original_text\": \"We're basically just winging it here and hoping nobody notices. The team has been under pressure to deliver results, but without a clear process things keep slipping through the cracks.\",\n      \"new_text\": \"Our approach prioritises iterative improvement and continuous learning. The team has been under pressure to deliver results, but without a clear process things keep slipping through the cracks.\"\n    },\n    {\n      \"operation\": \"insert_after\",\n      \"line_number\": 45,\n      \"new_text\": \"**Ready to get started? [Book a call today →](/contact)**\"\n    },\n    {\n      \"operation\": \"delete\",\n      \"line_number\": 33,\n      \"original_text\": \"This line is redundant and should be removed.\"\n    }\n  ],\n  \"skipped_issues\": [\n    {\n      \"line_number\": 8,\n      \"reason\": \"Structural change too large for line-level edit\"\n    }\n  ]\n}"
+      },
+      "id": "output_parser",
+      "name": "Edit Instructions Schema",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        512,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## 🟢 Step 2: Create Fix Instructions\n\nThe editor agent takes the list of issues and creates specific instructions for how to fix each one.\n\nIt tells us exactly which lines to change and what the new text should be. Each instruction includes the original text for safety checking.\n\nIssues that are too complex for a line-level edit are skipped and documented.\n\n**Model:** GPT-4o (via OpenRouter) — chosen for precise structured output. Upgraded from GPT-4o Mini after testing showed Mini produced duplicate and overlapping edits.\n\n**Output:** A JSON object with edit instructions (replace, insert_after, delete) and any skipped issues."
+      },
+      "id": "sticky_note",
+      "name": "Step 2: Create Fix Instructions",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -48,
+        -368
+      ]
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-4o",
+        "options": {
+          "temperature": 0.1
+        }
+      },
+      "id": "chat_model",
+      "name": "GPT-4o (OpenRouter)",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        304,
+        224
+      ],
+      "credentials": {
+        "openRouterApi": {
+          "id": "",
+          "name": "longship-openrouter"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Receive Issues": {
+      "main": [
+        [
+          {
+            "node": "Generate Edit Instructions",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Instructions Schema": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Generate Edit Instructions",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GPT-4o (OpenRouter)": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Generate Edit Instructions",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {},
+  "shared": [],
+  "tags": []
+}

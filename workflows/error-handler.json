@@ -1,0 +1,113 @@
+{
+  "updatedAt": "2026-03-13T13:23:03.892Z",
+  "createdAt": "2026-03-12T06:27:44.528Z",
+  "id": "77r2dlmwz22bu8WI",
+  "name": "Blog QA — Error Handler",
+  "description": null,
+  "active": true,
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "error_trigger",
+      "name": "Error Trigger",
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extract error details from the error trigger payload\nconst errorData = $input.item.json;\n\nconst now = new Date().toISOString();\n\nreturn [{\n  json: {\n    workflow_name: errorData.workflow?.name || 'Unknown',\n    workflow_id: errorData.workflow?.id || 'Unknown',\n    error_message: errorData.execution?.error?.message || 'No error message',\n    execution_id: errorData.execution?.id || 'Unknown',\n    timestamp: now,\n    file_path: 'N/A' // Would be extracted from execution data if available\n  }\n}];"
+      },
+      "id": "extract_error",
+      "name": "Extract Error Details",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        256,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## 🔴 If Something Goes Wrong\n\nThis workflow runs automatically when the main Blog QA Pipeline fails.\n\nIt captures the error details and logs them for debugging.\n\nThe original blog post file is never modified when an error occurs.",
+        "height": 176,
+        "width": 560,
+        "color": 7
+      },
+      "id": "sticky_error",
+      "name": "Error Handler Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -32,
+        -64
+      ]
+    },
+    {
+      "parameters": {
+        "dataTableId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "qa_error_log"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "timestamp": "={{ $json.timestamp }}",
+            "workflow_name": "={{ $json.workflow_name }}",
+            "workflow_id": "={{ $json.workflow_id }}",
+            "error_message": "={{ $json.error_message }}",
+            "execution_id": "={{ $json.execution_id }}",
+            "file_path": "={{ $json.file_path }}"
+          }
+        },
+        "options": {}
+      },
+      "id": "log_error",
+      "name": "Log Error to Data Table",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        512,
+        208
+      ]
+    }
+  ],
+  "connections": {
+    "Error Trigger": {
+      "main": [
+        [
+          {
+            "node": "Extract Error Details",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Error Details": {
+      "main": [
+        [
+          {
+            "node": "Log Error to Data Table",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": {},
+  "shared": [],
+  "tags": []
+}
