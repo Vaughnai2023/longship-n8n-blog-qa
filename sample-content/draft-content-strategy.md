@@ -2,17 +2,19 @@
 
 Here's a stat that should make every content marketer uncomfortable: according to Ahrefs, 96.55% of all web pages get zero traffic from Google. Not low traffic. Zero.
 
-And yet, B2B marketing teams keep pumping out blog posts like there's no tomorrow. Four posts a week, every week, hoping something sticks. Most of it basically just disappears into the void.
+And yet, B2B marketing teams keep publishing at high volume — four posts a week, every week — hoping something sticks. Most of it basically just disappears into the void.
 
 ## The Real Problem Isn't Volume — It's Quality
 
 The Content Marketing Institute reports that the average B2B content team is just 1 to 3 people. These small teams are expected to handle strategy, writing, SEO, design, social distribution, and reporting. There's simply no bandwidth left for proper editorial review.
 
-The result? Content that's riddled with inconsistencies. The tone shifts between sections because different drafts were written on different days, or because the writer was trying to hit a keyword density target instead of actually communicating with a human being. According to SEMrush, nearly 47% of companies don't even have a documented content strategy, which means every piece of content is basically a standalone guess about what might work.
+The result? Content that's riddled with inconsistencies. The tone shifts between sections because different drafts were written on different days, or because the writer was trying to hit a keyword density target instead of actually communicating with a human being.
+
+The structural problem runs deeper still. According to SEMrush, nearly 47% of companies don't have a documented content strategy — meaning every piece of content is essentially a standalone guess about what might work.
 
 ## Why Full AI Rewrites Are Not the Answer
 
-Some teams have tried solving this by running their entire draft through an LLM and using whatever comes out. This is a terrible idea for several reasons. First, you lose the author's authentic voice. Second, the AI will confidently rewrite things that were already good. Third, you end up with that weird, generic AI tone that readers are getting really good at spotting — its like reading content that was written by a committee of robots.
+Some teams have tried solving this by running their entire draft through an LLM and using whatever comes out. This is a terrible idea for several reasons. First, you lose the author's authentic voice. Second, the AI will confidently rewrite things that were already good. Third, you end up with that weird, generic AI tone that readers are getting really good at spotting — it's like reading the kind of generic, flattened prose that readers are increasingly able to identify on sight.
 
 ## The Sweet Spot: Line-Level AI QA
 
@@ -24,9 +26,9 @@ The key insight is separation of concerns. One agent finds problems. Another age
 
 ## The Numbers Don't Lie
 
-Gartner research shows that 65% of B2B content goes completely unused by sales teams, often because it doesn't match the brand voice or quality standards. Meanwhile, HubSpot found that 40% of marketers say proving content ROI is there biggest challenge.
+Gartner research shows that 65% of B2B content goes completely unused by sales teams, often because it doesn't match the brand voice or quality standards. Meanwhile, HubSpot found that 40% of marketers say proving content ROI is their biggest challenge.
 
-When your content quality is inconsistent, everything downstream suffers. Sales won't use it. Prospects won't trust it. And you definately can't measure ROI on content that nobody reads.
+When your content quality is inconsistent, everything downstream suffers. Sales won't use it. Prospects won't trust it. And you definitely can't measure ROI on content that nobody reads.
 
 ## What This Means for Content Teams
 
