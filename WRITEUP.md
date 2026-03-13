@@ -108,6 +108,8 @@ Create GitHub branch
 Log successful run to data table
 ```
 
+*(See [main-workflow.png](assets/main-workflow.png) for the full workflow canvas)*
+
 ---
 
 ## 3. How It Works Step by Step
@@ -120,20 +122,20 @@ Here's what happens when you click "Run" on the main workflow:
 
 3. **Add Line Numbers** — Before sending the content to the AI, every line gets a marker like `[L1]`, `[L2]`, `[L3]` prepended to it. This is critical — I'll explain why in the [design decisions section](#41-teaching-the-ai-to-count-lines).
 
-4. **Agent 1 Analyses the Content** — The numbered blog post is sent to Claude Sonnet (via OpenRouter) with a detailed prompt that includes brand voice guidelines. Agent 1 reads every line and returns a structured JSON object containing:
+4. **Agent 1 Analyses the Content** — The numbered blog post is sent to Claude Sonnet (via OpenRouter) with a detailed prompt that includes brand voice guidelines *(see [agent1-qa-critic.png](assets/agent1-qa-critic.png))*. Agent 1 reads every line and returns a structured JSON object containing:
    - A summary of the article's overall quality
    - A quality score with a breakdown across 5 dimensions (grammar, brand voice, clarity, structure, completeness)
    - A list of specific issues, each with a line number, issue type, severity, description, and suggested fix
 
 5. **Check If Issues Were Found** — An IF node checks whether Agent 1 found any issues. If the article is clean (no issues), the workflow stops here — no unnecessary edits or PRs.
 
-6. **Agent 2 Creates Edit Instructions** — If there are issues, the original blog post content and the list of issues are sent to GPT-4o (via OpenRouter). Agent 2 converts each issue into a concrete edit instruction: which line to change, what the original text says, and what it should say instead. Some issues get intentionally skipped if they're too complex for a line-level edit (for example, restructuring entire sections).
+6. **Agent 2 Creates Edit Instructions** — If there are issues, the original blog post content and the list of issues are sent to GPT-4o (via OpenRouter) *(see [agent2-editor.png](assets/agent2-editor.png))*. Agent 2 converts each issue into a concrete edit instruction: which line to change, what the original text says, and what it should say instead. Some issues get intentionally skipped if they're too complex for a line-level edit (for example, restructuring entire sections).
 
 7. **Patch Engine Applies Edits** — A JavaScript Code node takes the edit instructions and applies them to the original document. It processes edits from bottom to top (so earlier line numbers don't shift when later lines change). For each edit, it verifies the original text actually matches before making the change. If something doesn't match, it searches the whole document for the text as a fallback. If more than 50% of lines would be changed, it aborts entirely — the article probably needs a full rewrite, not patches.
 
 8. **Generate QA Report** — A Code node produces a Markdown report containing the quality score breakdown, all issues found, and which edits were applied vs skipped. This report gets committed alongside the patched blog post.
 
-9. **Create PR** — The workflow creates a new GitHub branch (named `ai-qa/{filename}-{date}`), commits the patched blog post and QA report to it, and opens a Pull Request against the main branch. The PR title and body include the quality score and a summary of changes.
+9. **Create PR** — The workflow creates a new GitHub branch (named `ai-qa/{filename}-{date}`), commits the patched blog post and QA report to it, and opens a Pull Request against the main branch. The PR title and body include the quality score and a summary of changes. *(See [example-pr.png](assets/example-pr.png) for what the final PR looks like)*
 
 10. **Log the Run** — Finally, the workflow logs the run details (timestamp, PR URL, quality score, number of edits applied/skipped) to an n8n Data Table for tracking.
 
@@ -287,23 +289,23 @@ Here are the safety measures built into the engine:
 
 ## 5. How I Refined the AI Prompts
 
-AI prompts rarely work perfectly on the first try. Here's the iteration process I went through:
+AI prompts rarely work perfectly on the first try. Each iteration below came from running the pipeline end-to-end, examining the actual output, diagnosing why it went wrong, and fixing the root cause. This is the process I'd follow on any production AI workflow — test, observe, understand, fix.
 
 ### Agent 1 — QA Critic (4 iterations)
 
-**Iteration 1:** The initial prompt used `"type": "system"` for the system message. n8n's AI Agent node (version 1.9) requires the full name `"type": "SystemMessagePromptTemplate"`. Fixed.
+**Iteration 1 — The node wouldn't run at all.** When I first triggered the workflow, n8n threw an error on the AI Agent node. The system message was configured with `"type": "system"`, but n8n's chainLlm node (version 1.9) requires the full template name `"type": "SystemMessagePromptTemplate"`. This isn't documented anywhere obvious — I found it by reading the n8n source. **Takeaway:** n8n's AI nodes have specific internal conventions that differ from what most LLM documentation shows.
 
-**Iteration 2:** The output parser had "Auto-Fix" enabled, which requires a separate AI model node to be connected. Since Claude returns valid JSON reliably, I turned this off and relied on the structured output parser plus my custom JSON cleanup code instead.
+**Iteration 2 — The output was raw text, not JSON.** Agent 1 returned a wall of unstructured text instead of the JSON object I needed. Two things were wrong: first, the output parser's "Auto-Fix" setting was enabled, which requires a separate model node to be connected (I didn't have one). Second, the `hasOutputParser` flag on the Agent node wasn't turned on — so even though the output parser node was *connected* on the canvas, n8n wasn't actually *using* it. Disabling Auto-Fix and enabling `hasOutputParser` gave me structured JSON output. **Takeaway:** In n8n, a visual connection between nodes isn't always enough — some features need explicit flags to activate.
 
-**Iteration 3:** The `hasOutputParser` flag wasn't enabled. This meant the output parser node was connected but not actually being used — the agent returned raw text instead of parsed JSON. Enabling this flag fixed the issue.
+**Iteration 3 — Line numbers were wrong.** The JSON was clean, but Agent 1 reported issues on the wrong lines (off by 4-6 lines consistently). I tried four rounds of prompt tweaking: "count blank lines," "start from line 1," "count carefully." Marginal improvement at best. Research confirmed this is a fundamental LLM limitation — they tokenize text, they don't see line breaks the way humans do. The fix was the `[L#]` marker injection described in [Section 4.1](#41-teaching-the-ai-to-count-lines). **Takeaway:** When an LLM can't do something reliably, don't fight the model — change the input so it doesn't need to.
 
-**Iteration 4:** Line number accuracy and quality score scale. Added the `[L#]` marker injection approach (described above). Also strengthened the quality score instructions — the model was stubbornly returning scores on a 0-10 scale despite being told to use 0-100. Added explicit examples of correct vs incorrect scoring. As a safety net, I also added normalization code in the report node to multiply by 10 if the score comes back in the 0-10 range.
+**Iteration 4 — Quality scores were on the wrong scale.** Despite explicit instructions saying "score 0-100," Claude stubbornly returned scores between 0 and 10. I added bold formatting, examples of correct vs incorrect scores (`"CORRECT: 74" / "WRONG: 7.4"`), and a critical warning. This mostly fixed it, but I also added normalization code in the report node as a safety net — if the score is ≤10, multiply by 10. Later, when I added the weighted scoring rubric ([Section 4.4](#44-making-quality-scores-meaningful)), the problem disappeared entirely because the model now calculates five separate dimension scores. **Takeaway:** Build two layers — prompt the model correctly, but also handle it gracefully when the model ignores your instructions.
 
 ### Agent 2 — Editor (2 key changes)
 
-**Change 1 — Model swap:** Replaced GPT-4o Mini with GPT-4o after Mini produced unreliable output (duplicate edits, partial text, overlapping changes).
+**Change 1 — Model swap.** The first version used GPT-4o Mini for cost efficiency. When I ran it end-to-end, Mini produced: duplicate edits targeting the same line, partial `original_text` fragments (a sentence instead of the full line), conflicting overlapping changes, and erroneous punctuation insertions. I switched to the full GPT-4o model and every one of these problems vanished. The cost difference is a few cents per run — a clear trade-off in favour of reliability. **Takeaway:** Cheaper models aren't always cheaper when you account for the debugging and safety-net code they require.
 
-**Change 2 — Rule 8:** Added an explicit prompt rule requiring `original_text` and `new_text` to contain the complete line content, never just a snippet. Updated the JSON example to show paragraph-length content. Combined with the substring replacement safety net in the patch engine, this solved the content-loss problem entirely.
+**Change 2 — Content-loss prevention (Rule 8).** During end-to-end testing, I discovered that Agent 2 sometimes returned only the edited sentence as `new_text` instead of the complete paragraph. The patch engine would then replace the whole line with just that sentence, deleting the surrounding content. I added an explicit prompt rule (Rule 8): "Your `original_text` and `new_text` must contain the COMPLETE line content, never just a snippet." I also updated the JSON example to show paragraph-length content so the model could see the expected format. Combined with the substring replacement safety net in the patch engine ([Section 4.3](#43-preventing-content-loss-with-defence-in-depth)), this solved content loss entirely. **Takeaway:** Prompt rules help, but a code-level fallback is essential for anything that could corrupt user content.
 
 ---
 
@@ -340,7 +342,7 @@ A dedicated error handler workflow catches any unhandled failures in the main pi
 2. A Code node extracts the error details (message, workflow name, node that failed, execution ID)
 3. The error is logged to the `qa_error_log` Data Table with a timestamp
 
-This means even if the pipeline crashes, we have a record of what happened and where.
+This means even if the pipeline crashes, we have a record of what happened and where. For example, when I deliberately broke the file path during testing, the error handler captured the workflow name, the failing node ("Fetch Blog Post from GitHub"), the error message ("Not Found"), and the execution ID — all logged to the `qa_error_log` table within seconds. *(See [error-handler.png](assets/error-handler.png) for the workflow and [error-log.png](assets/error-log.png) for a captured failure)*
 
 ### Layer 2: Patch Engine Safety Rules
 - **Out-of-range line numbers** → Edit is skipped and logged

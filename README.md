@@ -132,9 +132,12 @@ You need three credentials in n8n:
 The main workflow calls Agent 1 and Agent 2 as sub-workflows using their workflow IDs. After importing, the IDs will be different in your n8n instance.
 
 1. Open the **Blog QA Pipeline** (main workflow)
-2. Find the **"Run QA Analysis"** node → update the workflow ID to match your imported Agent 1
-3. Find the **"Generate Edit Instructions"** node → update the workflow ID to match your imported Agent 2
-4. In the main workflow's **Settings** (gear icon) → set the Error Workflow to your imported Error Handler
+2. Double-click the **"Run QA Analysis"** node to open its settings
+3. In the **"Workflow"** dropdown (or **"Workflow ID"** field), select or paste the ID of your imported Agent 1 workflow
+4. Double-click the **"Generate Edit Instructions"** node → in the same **"Workflow"** dropdown, select your imported Agent 2 workflow
+5. Click the **gear icon** (⚙️) in the top-right of the workflow canvas → under **Error Workflow**, select your imported Error Handler
+
+> **Tip:** You can find a workflow's ID in n8n by opening it and looking at the URL bar — the ID is the string after `/workflow/`.
 
 ### Step 4: Connect Credentials to Nodes
 
