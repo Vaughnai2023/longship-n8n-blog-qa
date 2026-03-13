@@ -1,7 +1,13 @@
-# Planning docs (not part of submission)
+# Planning and internal docs (not part of submission)
 longship-task2-prd.md
 n8n Automation Specialist Hiring Process Tasks.md
 BUILD-TODO.md
+CLAUDE.md
+future-action-items.md
+n8n-README.md
+
+# Claude Code local settings
+.claude/
 
 # OS files
 .DS_Store
